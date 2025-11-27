@@ -1,0 +1,6 @@
+homepage:
+  menu:
+    replace:
+
+      - desc: Eventos
+        screenName: eventos-disponibles

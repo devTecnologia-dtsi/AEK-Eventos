@@ -5,16 +5,17 @@ import QRCode from "react-qr-code";
 const Inscribirse = ({ ctx }) => {
     // const 
     // const urlApIWallet = "http://localhost/api_wallet"
-    // const urlApIWallet = "https://comunidad.uniminuto.edu/api_wallet_test"
-    const urlApIWallet = "https://comunidad.uniminuto.edu/api_wallet"
+    const urlApIWallet = "https://comunidad.uniminuto.edu/api_wallet_test"
+    // const urlApIWallet = "https://comunidad.uniminuto.edu/api_wallet"
     // const urlApiEventos = "http://localhost/api_eventos"
-    // const urlApiEventos = "https://registros.uniminuto.edu/api_eventos_test"
-    const urlApiEventos = "https://registros.uniminuto.edu/api_eventos"
+    const urlApiEventos = "https://registros.uniminuto.edu/api_eventos_test"
+    // const urlApiEventos = "https://registros.uniminuto.edu/api_eventos"
 
     // state
     const [infoEvento, setInfoEvento] = useState({})
     const [cargando, setCargando] = useState(true)
     const [tipoDocumento, setTipoDocumento] = useState("")
+    const [tipoParticipante, setTipoParticipante] = useState("")
     const [tiposDocumentos, setTiposDocumentos] = useState([])
     const [disabledTipoDocumento, setDisabledTipoDocumento] = useState(true)
     const [formularioCompleto, setFormularioCompleto] = useState(true)
@@ -75,25 +76,28 @@ const Inscribirse = ({ ctx }) => {
     }
 
     const inscribirse = async () => {
-        if (tipoDocumento == "") {
+        if (tipoDocumento == "" && tipoParticipante == "") {
             setFormularioCompleto(false)
             return
         }
         setEjecutandoAccion(true)
         const resultSaveEvent = await postData({
             url: `${urlApIWallet}/modules/evento.php`,
-            params: JSON.stringify([
-                {
-                    "idInstancia": params['id'],
-                    "tipoUsuario": "1",
-                    "tipo_participante": "ESTUDIANTE",
-                    "tipoDocumento": tipoDocumento,
-                    "correo": params['correo'],
-                    "EstadoAsist": "1",
-                    "notificaciones": "Si",
-                    "rol": "ESTUDIANTE"
-                }
-            ])
+            params: JSON.stringify({
+                participantes: [
+                    {
+                        "Evento": params['id'],
+                        "tipoUsuario": "1",
+                        "tipoParti": tipoParticipante,
+                        "TipoDocumento": tipoDocumento,
+                        "Correo": params['correo'],
+                        "EstadoAsist": '1',
+                        "notificaciones": 'Si',
+                        "rol": tipoParticipante,
+                    }
+                ],
+            }
+            )
         })
         setEjecutandoAccion(false)
         setExitoEjecucionInscripcion(true)
@@ -204,11 +208,26 @@ const Inscribirse = ({ ctx }) => {
                                                                 ""
                                                         }
                                                     </select>
-                                                    {!formularioCompleto ? <div id="emailHelp" className="form-text">Este campo es obligatorio</div> : ""}
+                                                    {!formularioCompleto && !tipoDocumento ? <div id="emailHelp" className="form-text">Este campo es obligatorio</div> : ""}
 
                                                 </div>
                                                 <div className="col-12 mt-2">
                                                     <input type="text" className="form-control" placeholder="Documento" value={params['documento']} disabled />
+                                                </div>
+                                                <div className="col-12 mt-2">
+                                                    <select className="form-select" value={tipoParticipante} onChange={(e) => setTipoParticipante(e.target.value)}>
+                                                        <option value="">
+                                                            Seleccione el tipo de participante
+                                                        </option>
+                                                        <option value={"ESTUDIANTE"}>
+                                                            Estudiante
+                                                        </option>
+                                                        <option value={"EGRESADO"}>
+                                                            Egresado
+                                                        </option>
+                                                    </select>
+                                                    {!formularioCompleto && !tipoParticipante ? <div id="emailHelp" className="form-text">Este campo es obligatorio</div> : ""}
+
                                                 </div>
                                             </div>
                                     }

@@ -8,13 +8,13 @@ import { request } from "@ombiel/aek-lib";
 
 const Evento = ({ ctx }) => {
     // const
-    // const baseUrlEventos = "https://registros.uniminuto.edu/api_eventos_test";
-    const baseUrlEventos = "https://registros.uniminuto.edu/api_eventos";
+    const baseUrlEventos = "https://registros.uniminuto.edu/api_eventos_test";
+    // const baseUrlEventos = "https://registros.uniminuto.edu/api_eventos";
     // const baseUrlEventos = "http://localhost/api_eventos"
     const baseUrlDA = "https://registros.uniminuto.edu/api_da"
     // const beseUrlWallet = "http://localhost/api_wallet"
-    // const beseUrlWallet = "https://comunidad.uniminuto.edu/api_wallet_test"
-    const beseUrlWallet = "https://comunidad.uniminuto.edu/api_wallet"
+    const beseUrlWallet = "https://comunidad.uniminuto.edu/api_wallet_test"
+    // const beseUrlWallet = "https://comunidad.uniminuto.edu/api_wallet"
 
     // states filters
     const [rectorias, setRectorias] = useState([])
@@ -77,11 +77,9 @@ const Evento = ({ ctx }) => {
 
     const obtenerEventos = async () => {
         try {
-            const descRectoria = rectorias.filter(({ CODIGO }) => CODIGO == rectoria)[0]
-            const descSede = sedes.filter(({ CODIGO }) => CODIGO == sede)[0]
             setCargandoEventos(true)
             const result = await fetchData({
-                url: `${baseUrlEventos}/select/index.php?fn=consultaEventosDisponibles&rol=ESTUDIANTE&area=${area}&rectoria=${descRectoria.DESCRIPCION}&sede=${descSede.DESCRIPCION}`
+                url: `${baseUrlEventos}/select/index.php?fn=consultaEventosDisponibles&rol=ESTUDIANTE&area=${area}&rectoria=${rectoria}&sede=${sede}`
             });
             setCargandoEventos(false)
             setEventos(result)
@@ -108,10 +106,12 @@ const Evento = ({ ctx }) => {
     }
 
     const obtenerEventosInscrito = async () => {
+        console.log('im here')
         setCargandoEventosInscribed(true)
         const result = await fetchData({
             url: `${beseUrlWallet}/modules/evento.php?fn=consultas&documento=${infoDa.Pager}&rol=ESTUDIANTE&idEvento=5&accion=consultas`
         })
+        console.log(result)
         setCargandoEventosInscribed(false)
         setEventosInscribed(result)
     }

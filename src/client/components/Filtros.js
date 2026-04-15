@@ -20,22 +20,19 @@ const Filtros = ({
     setArea,
     filtrarEventos
 }) => {
-    // const
-    // const urlDigibee = "https://uniminuto.test.digibee.io/pipeline/uniminuto/v1"
-    const urlDigibee = "https://uniminuto.api.digibee.io/pipeline/uniminuto/v1"
+    const urlApiSoftexpert = "https://uniminuto.softexpert.com/apigateway/v1/dataset-integration"
     const urlEstudiantes = "https://comunidad.uniminuto.edu/estudiantes"
-    // const urlEventos = "https://registros.uniminuto.edu/api_eventos_test"
-    const urlEventos = "https://registros.uniminuto.edu/api_eventos"
+    const urlEventos = "https://registros.uniminuto.edu/api_eventos_test"
+    // const urlEventos = "https://registros.uniminuto.edu/api_eventos"
     // const urlEventos = "http://localhost/api_eventos"
 
     // states
     const [disabledRec, setDisabledRec] = useState(true)
     const [disabledSede, setDisabledSede] = useState(true)
     const [disabledArea, setDisabledArea] = useState(true)
+    const [rectoriasSedes, setRectoriasSedes] = useState([])
     const headers = {
-        // 'apikey': '5H9CcvkLZJTgPDDCXTXTI7KC90k6prl0', // pruebas
-        'apikey': 'ITnjVcrLWfYpY2B246EcrWO6Hln3LD7a',
-        'Content-Type': 'application/json'
+        'Authorization': 'eyJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NzI3MjEwMzIsImV4cCI6MTkzMDQ4NzQzMiwiaWRsb2dpbiI6InNvZnRleHBlcnR3ZWJzZXJ2aWNlQHVuaW1pbnV0by5lZHUiLCJyYXRlbGltaXQiOjEyMCwicXVvdGFsaW1pdCI6MTAwMDAwfQ.ZlVuN4G9NPllt2ZoT85_BB3wY0QPZOiRZbSm-AGJ_Eg',
     }
 
     useEffect(() => {
@@ -45,24 +42,19 @@ const Filtros = ({
 
     const obtenerRectorias = async () => {
         try {
-            const result = await fetchData({ url: `${urlDigibee}/servicios-banner/obtenerRectorias`, headers })
-            setRectorias(JSON.parse(result.body))
+            const rectoriasConSedes = await fetchData({ url: `${urlApiSoftexpert}/cdrectoriassedes`, headers })
+
+            setRectoriasSedes(rectoriasConSedes);
+            const rectorias = rectoriasConSedes.map(({ rectoria }) => rectoria);
+            setRectorias(rectorias);
 
             const resultadoEstudiante = await fetchData({ url: `${urlEstudiantes}/Estudiantes/ProgramasAll/${bannerId}` })
             const ultimoResultadoEstudiante = resultadoEstudiante[resultadoEstudiante.length - 1]
+            setRectoria(ultimoResultadoEstudiante.descRectoria)
+            setSede(ultimoResultadoEstudiante.sede)
 
-            const codRectoria = JSON.parse(result.body).filter((rectoria) => rectoria.DESCRIPCION == ultimoResultadoEstudiante.descRectoria)
-            // const codRectoria = JSON.parse(result.body).filter((rectoria) => rectoria.DESCRIPCION == "R CENTRO SUR")
-            if (codRectoria.length > 0) {
-                setRectoria(codRectoria[0].CODIGO)
-                // se busca la sede y se busca el codigo de la sede a la que pertenece
-                const resultSede = await obtenerSedes(codRectoria[0].CODIGO)
-                const codigoSede = JSON.parse(resultSede.body).filter((sede) => sede.DESCRIPCION == ultimoResultadoEstudiante.sede)
-                if (codigoSede.length > 0) {
-                    setSede(codigoSede[0].CODIGO)
-                }
-                setSedes(JSON.parse(resultSede.body))
-            }
+            const sedes = obtenerSedes(ultimoResultadoEstudiante.descRectoria, rectoriasConSedes)
+            setSedes(JSON.parse(sedes))
             setDisabledRec(false)
             setDisabledSede(false)
         } catch (error) {
@@ -70,19 +62,14 @@ const Filtros = ({
         }
     }
 
-    const obtenerSedes = async (codRectoria) => {
-        const result = await fetchData({ url: `${urlDigibee}/servicios-banner/obtenerSedes?rectoria=${codRectoria}`, headers })
-        return result
+    const obtenerSedes = (rectoriaFiltrar, rectorias = rectoriasSedes) => {
+        return rectorias.filter(({ rectoria }) => rectoria == rectoriaFiltrar).map(({ sedes }) => sedes)
     }
 
     const changeSedes = async (e) => {
         e.persist();
-        setDisabledSede(true)
-        const nuevaRectoria = rectorias.filter(({ CODIGO }) => CODIGO == e.target.value)
-        setRectoria(nuevaRectoria[0].CODIGO)
-        const resultSedes = await obtenerSedes(e.target.value)
-        setSedes(JSON.parse(resultSedes.body))
-        setDisabledSede(false)
+        setRectoria(e.target.value)
+        setSedes(JSON.parse(obtenerSedes(e.target.value)))
     }
 
     const obtenerAreas = async () => {
@@ -97,11 +84,11 @@ const Filtros = ({
                 <div className="col-6">
                     <select className="form-select form-select-sm" aria-label=".form-select-sm" value={rectoria} disabled={disabledRec} onChange={(e) => changeSedes(e)}>
                         <option value="">
-                            {disabledRec ? 'Cargando Rectorias...' : 'Seleccione una Rectoria'}
+                            {disabledRec ? 'Cargando Rectorias...' : 'SELECICIONE UNA RECTORIA'}
                         </option>
                         {
                             rectorias.length != 0 ?
-                                rectorias.map(({ CODIGO, DESCRIPCION }) => <option key={CODIGO} value={CODIGO}>{DESCRIPCION}</option>)
+                                rectorias.map((rectoria) => <option key={rectoria} value={rectoria}>{rectoria}</option>)
                                 :
                                 ""
                         }
@@ -110,11 +97,11 @@ const Filtros = ({
                 <div className="col-6">
                     <select className="form-select form-select-sm" aria-label=".form-select-sm" value={sede} disabled={disabledSede} onChange={(e) => setSede(e.target.value)}>
                         <option value="">
-                            {disabledSede ? 'Cargando Sedes...' : 'Seleccione una Sede'}
+                            {disabledSede ? 'Cargando Sedes...' : 'SELECIONE UNA SEDE'}
                         </option>
                         {
                             sedes.length != 0 ?
-                                sedes.map(({ CODIGO, DESCRIPCION }) => <option key={CODIGO} value={CODIGO}>{DESCRIPCION}</option>)
+                                sedes.map((sede) => <option key={sede} value={sede}>{sede}</option>)
                                 :
                                 ""
                         }

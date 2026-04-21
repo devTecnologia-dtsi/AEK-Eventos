@@ -20,7 +20,6 @@ const Filtros = ({
     setArea,
     filtrarEventos
 }) => {
-    const urlApiSoftexpert = "https://uniminuto.softexpert.com/apigateway/v1/dataset-integration"
     const urlEstudiantes = "https://comunidad.uniminuto.edu/estudiantes"
     const urlEventos = "https://registros.uniminuto.edu/api_eventos_test"
     // const urlEventos = "https://registros.uniminuto.edu/api_eventos"
@@ -31,9 +30,6 @@ const Filtros = ({
     const [disabledSede, setDisabledSede] = useState(true)
     const [disabledArea, setDisabledArea] = useState(true)
     const [rectoriasSedes, setRectoriasSedes] = useState([])
-    const headers = {
-        'Authorization': 'eyJhbGciOiJIUzI1NiJ9.eyJpYXQiOjE3NzI3MjEwMzIsImV4cCI6MTkzMDQ4NzQzMiwiaWRsb2dpbiI6InNvZnRleHBlcnR3ZWJzZXJ2aWNlQHVuaW1pbnV0by5lZHUiLCJyYXRlbGltaXQiOjEyMCwicXVvdGFsaW1pdCI6MTAwMDAwfQ.ZlVuN4G9NPllt2ZoT85_BB3wY0QPZOiRZbSm-AGJ_Eg',
-    }
 
     useEffect(() => {
         obtenerRectorias()
@@ -42,7 +38,7 @@ const Filtros = ({
 
     const obtenerRectorias = async () => {
         try {
-            const rectoriasConSedes = await fetchData({ url: `${urlApiSoftexpert}/cdrectoriassedes`, headers })
+            const rectoriasConSedes = await fetchData({ url: `${urlEventos}/select/index.php?fn=rectoriasSedes`, headers: {} })
 
             setRectoriasSedes(rectoriasConSedes);
             const rectorias = rectoriasConSedes.map(({ rectoria }) => rectoria);
